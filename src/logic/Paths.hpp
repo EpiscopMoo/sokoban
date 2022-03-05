@@ -7,7 +7,7 @@
 
 struct Path {
     Point goal;
-    std::list<Point> points;
+    std::vector<Point> points;
 
     Path(Point _goal, Point p) : goal(_goal) {
         points.push_back(p);
@@ -25,22 +25,34 @@ struct Path {
         if (my_dist == other_dist) {
             return points.size() > other.points.size();
         }
-        return Point::distance(points.back(), goal) > Point::distance(other.points.back(), goal);
+        return my_dist > other_dist;
     }
 
     Point last() {
-        return  points.back();
+        return points.back();
+    }
+};
+
+class PathQueue : public std::priority_queue<Path> {
+public:
+    void reserve(size_t amount) {
+        c.reserve(amount);
+    }
+    void clear() {
+        c.clear();
+        std::make_heap(c.begin(), c.end());
     }
 };
 
 class Paths {
 public:
-    Paths() = delete;
     static std::optional<Path> plot_path(Point start,
                                          Point goal,
                                          std::function<std::vector<Point>(Point)> adjacent_getter) {
-        std::unordered_set<Point> visited;
-        std::priority_queue<Path> paths;
+        std::unordered_set<Point>& visited = get().visited;
+        PathQueue& paths = get().paths;
+        visited.clear();
+        paths.clear();
         paths.push(Path(goal, start));
 
         while (!paths.empty()) {
@@ -48,12 +60,12 @@ public:
             paths.pop();
 
             Point current = best_path.last();
-            if (!visited.count(current)) {
+            auto [_, not_visited] = visited.insert(current);
+            if (not_visited) {
                 if (current == goal) {
                     return best_path;
                 }
 
-                visited.insert(current);
                 for (Point adjacent_pt : adjacent_getter(current)) {
                     if (!visited.count(adjacent_pt)) {
                         paths.push(Path(goal, best_path, adjacent_pt));
@@ -114,6 +126,19 @@ public:
         return as_string(as_moves(path));
     }
 private:
+    static constexpr size_t DEFAULT_CAPACITY = 1000;
+    std::unordered_set<Point> visited;
+    PathQueue paths;
+    static Paths& get() {
+        static Paths paths;
+        return paths;
+    }
+
+    Paths() {
+        visited.reserve(DEFAULT_CAPACITY);
+        paths.reserve(DEFAULT_CAPACITY);
+    }
+
     static Move move_between(Point p1, Point p2) {
         // remember that x is actually vertical axis in curses notation
         size_t v_diff = p2.x - p1.x;

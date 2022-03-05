@@ -11,9 +11,12 @@ public:
     Solver(const Level& _level) : level(_level) {}
     std::vector<Move> solve(const GameState& state) {
         NonIsomorphicStates states;
+        states.reserve(STATES_CAPACITY);
         return solve(state, {}, states);
     }
 private:
+    static constexpr size_t STATES_CAPACITY = 10000;
+    static constexpr size_t SUBSTATES_CAPACITY = 100;
     const Level& level;
 
     struct NextState {
@@ -341,6 +344,7 @@ private:
         auto reduced_state = state.reduced_state();
         std::vector<GameState>& states_with_same_box_positions = states[reduced_state];
         if (states_with_same_box_positions.empty()) {
+            states_with_same_box_positions.reserve(SUBSTATES_CAPACITY);
             states_with_same_box_positions.push_back(state);
             return true; // state is unique, continue algorithm
         }

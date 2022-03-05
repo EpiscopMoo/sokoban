@@ -14,7 +14,7 @@ using PLevel = std::shared_ptr<Level>;
 using PGameState = std::shared_ptr<GameState>;
 using PSolver = std::shared_ptr<Solver>;
 
-constexpr int DEFAULT_ITERATIONS = 10;
+constexpr int DEFAULT_ITERATIONS = 100;
 constexpr int MAX_ITERATIONS = 100000;
 
 void print_stats(const std::vector<std::vector<uint64_t>>& measures) {

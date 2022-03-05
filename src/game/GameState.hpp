@@ -2,6 +2,7 @@
 #include "Level.hpp"
 #include "Move.hpp"
 #include <unordered_set>
+#include <set>
 #include <functional>
 #include <ranges>
 #include <utility>
@@ -12,28 +13,19 @@ struct PushableBox {
 };
 
 struct ReducedState {
-    ReducedState(std::unordered_set<Point>  _boxes) : boxes(std::move(_boxes)) {}
+    ReducedState(const std::unordered_set<Point>&  _boxes) : boxes(_boxes.begin(), _boxes.end()) {}
     bool operator==(const ReducedState& other) const {
         return boxes == other.boxes;
     }
     size_t hash() const {
-        std::vector<size_t> hashes;
-        hashes.reserve(boxes.size());
-
-        for (Point box : boxes) {
-            hashes.push_back(std::hash<Point>()(box));
-        }
-
-        std::sort(hashes.begin(), hashes.end());
-
         size_t r = 0;
-        for (size_t h : hashes) {
-            r = hash_combine(r, h);
+        for (Point box : boxes) {
+            r = hash_combine(r, box.hash());
         }
         return r;
     }
 private:
-    std::unordered_set<Point> boxes;
+    std::set<Point> boxes;
 };
 
 HASH_SUPPORT(ReducedState)
@@ -110,11 +102,14 @@ public:
     }
 
     std::vector<Point> adjacent_walkable(Point p) const {
-        auto probably_walkable = level.adjacent_walkable(p);
-        auto really_walkable = probably_walkable | std::views::filter([this] (Cell c) {
-            return is_walkable(c) && c.pos != player_position;
-        }) | std::views::transform([] (Cell c) { return c.pos; });
-        return std::vector<Point>(really_walkable.begin(), really_walkable.end());
+        std::vector<Point> result;
+        result.reserve(4);
+        for (const auto& probably_walkable : level.adjacent_walkable(p)) {
+            if (is_walkable(probably_walkable) && probably_walkable.pos != player_position) {
+                result.push_back(probably_walkable.pos);
+            }
+        }
+        return result;
     }
 
     const std::unordered_set<Point>& box_positions() const {

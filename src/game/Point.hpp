@@ -14,8 +14,11 @@ struct Point {
     static size_t distance(Point p1, Point p2) {
         return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y);
     }
+    bool operator<(const Point& other) const {
+        return x < other.x || (x == other.x && y < other.y);
+    }
     size_t hash() const {
-        return hash_combine(hash_combine(0, x), x);
+        return hash_combine(0, x); // for some reason works better without 'y'
     }
     Point move(Move m) const {
         switch (m) {
