@@ -1,8 +1,8 @@
-#include "src/game/Level.hpp"
-#include "src/game/GameState.hpp"
-#include "src/game/InterLayer.hpp"
-#include "src/logic/Solver.hpp"
-#include "src/util/FileUtil.hpp"
+#include "game/Level.hpp"
+#include "game/GameState.hpp"
+#include "game/InterLayer.hpp"
+#include "logic/Solver.hpp"
+#include "util/FileUtil.hpp"
 
 #include <iostream>
 
@@ -42,7 +42,6 @@ int main(int argc, const char** argv) {
         interLayer.manual_loop();
     } else {
         Solver solver(level);
-        solver.solve(game);
         interLayer.execute_commands(solver.solve(game));
     }
     return 0;
